@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<button id = "button10am">10am</button>
+<button id = "button5pm">5pm</button>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+#version 300 es
+
+in  vec4 aPosition;
+in  vec3 aNormal; 
+uniform mat3 normalMatrix;
+
+uniform mat4 modelViewMatrix;
+uniform mat4 projmatrix;
+uniform vec4 ambient1, ambient2, diffuse, specular, lightposition1, lightposition2;
+uniform float shininess;
+uniform float click1;
+out vec4 vColor;
+
+void main()
+{
+    vec3 light;
+    vec4 ambienthere;
+    vec3 pos = (modelViewMatrix * aPosition).xyz; 
+
+    /////
+    if(click1 == 1.0){
+        light = lightposition1.xyz;//10am should be dark
+        ambienthere = ambient1;
+    }
+    else{
+        light = lightposition2.xyz; 
+        ambienthere = ambient2;
+        
+    }
+    //////
+
+    vec3 L = normalize(light - pos);
+    vec3 V = normalize(-pos);
+
+    //because h = (L+V)/|L+V|, but its already normalized so we dont need the denominator 
+    vec3 H = L+V;
+
+    vec3 N = normalize(normalMatrix * aNormal.xyz); //Normalized_Model_Normal
+
+
+    //////////////////////////////
+
+
+    //Compute terms in the illumination equation
+
+    float Kd = max(dot(L, N), 0.0);
+    vec4  diffusehere = Kd*diffuse;
+
+    float Ks = pow( max(dot(N, H), 0.0), shininess );
+    vec4  specularhere = Ks * specular;
+
+    if( dot(L, N) < 0.0 ) {
+	  specularhere = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+    vColor = ambienthere + diffusehere +specularhere;
+
+    vColor.a = 1.0; 
+
+    //////////////////////////////
+
+    gl_Position =  projmatrix * modelViewMatrix * aPosition;
+    gl_Position.z = gl_Position.z;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+#version 300 es
+
+precision mediump float;
+
+in vec4 vColor;
+out vec4 fColor;
+
+void
+main()
+{
+    fColor = vColor;
+    //fColor = vec4(1.0, 0,0, 1);
+}
+
+</script>
+
+<!-- <script type="text/javascript" src="../test/Common/initShaders.js"></script>
+<script type="text/javascript" src="../test/Common/MVnew.js"></script>
+<script type="text/javascript" src="lightingATT.js"></script>
+
+<body>
+    <body style="background-color:rgb(43, 46, 46);"></body>
+<canvas id="gl-canvas" width="560" height="560">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+<br/>
+</body> -->
+
+<script type="text/javascript" src="../AY_buildings_and_light/Common/initShaders.js"></script>
+<script type="text/javascript" src="../AY_buildings_and_light/Common/MV.js"></script>
+<script type="text/javascript" src="final_buildings_with_light.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: rgb(43, 46, 46);
+    }
+
+    canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+    }
+</style>
+
+<body>
+    <canvas id="gl-canvas">
+        Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+
+    <br/>
+</body>
+
+</html>
